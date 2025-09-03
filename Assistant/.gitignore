@@ -1,0 +1,38 @@
+# Entorno virtual
+venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+
+# Logs y archivos temporales
+logs/*.log
+*.log
+*.tmp
+
+# Archivos de configuración local
+.env
+
+# Modelos grandes (deben descargarse por separado)
+models/*.gguf
+models/*.bin
+
+# Archivos de base de conocimiento
+*.faiss
+*.pkl
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo

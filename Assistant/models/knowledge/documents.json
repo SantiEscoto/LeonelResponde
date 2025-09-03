@@ -1,0 +1,47 @@
+[
+  {
+    "id": 0,
+    "content": "El Usuario se llama Santiago",
+    "metadata": {
+      "source": "user_input",
+      "timestamp": "2025-09-03 10:46:59.925119"
+    },
+    "timestamp": 1756918021.009748
+  },
+  {
+    "id": 1,
+    "content": "me llamo Santiago y soy un Ingeniero Mecatrónico",
+    "metadata": {
+      "source": "user_input",
+      "timestamp": "2025-09-03 10:52:52.870694"
+    },
+    "timestamp": 1756918373.873157
+  },
+  {
+    "id": 2,
+    "content": "Me llamo Santiago",
+    "metadata": {
+      "source": "user_input",
+      "timestamp": "2025-09-03 10:57:20.040789"
+    },
+    "timestamp": 1756918641.283435
+  },
+  {
+    "id": 3,
+    "content": "el usuario se llama Santiago y le gustan las hamburguesas",
+    "metadata": {
+      "source": "user_input",
+      "timestamp": "2025-09-03 11:09:19.683498"
+    },
+    "timestamp": 1756919360.8119931
+  },
+  {
+    "id": 4,
+    "content": "El nombre del usuario es Santiago",
+    "metadata": {
+      "source": "user_input",
+      "timestamp": "2025-09-03 11:17:56.099907"
+    },
+    "timestamp": 1756919877.3507378
+  }
+]
