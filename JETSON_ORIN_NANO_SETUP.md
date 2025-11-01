@@ -9,6 +9,14 @@ Esta guía explica cómo preparar el entorno, instalar dependencias y ejecutar e
 - 8 GB de RAM recomendado (4 GB funciona con modelos pequeños)
 - Acceso a Internet inicial para instalar dependencias y descargar modelos (luego funciona offline)
 
+## 0. Obtener el repositorio
+
+```bash
+git clone https://github.com/SantiEscoto/LeonelResponde.git
+cd LeonelResponde
+git checkout main
+```
+
 ## 1. Actualizar sistema y herramientas
 
 ```bash
