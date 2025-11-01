@@ -1,0 +1,28 @@
+# Dependencias de Voz para Docker (Python 3.11)
+# Evita conflictos de numpy/librosa y habilita XTTS con paquetes de sistema
+
+# STT (Speech-to-Text)
+openai-whisper==20231117
+vosk==0.3.44
+webrtcvad==2.0.10
+
+# TTS (Text-to-Speech)
+TTS==0.22.0              # Coqui XTTS v2
+bark==0.1.5              # Backup expresivo
+
+# Audio Processing
+pyaudio==0.2.11          # Requiere portaudio19-dev en el sistema
+librosa==0.10.1
+soundfile==0.12.1
+sounddevice==0.4.6       # Grabación de micrófono (PortAudio)
+noisereduce==3.0.0
+scipy==1.11.4
+
+# WebRTC y Streaming (opcional)
+aiortc==1.6.0
+websockets==12.0
+
+# Utilities
+numpy==1.26.4
+pandas==1.5.3
+tqdm==4.67.1

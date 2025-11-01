@@ -1,0 +1,76 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "API Requests (1m)",
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {
+          "expr": "sum(rate(api_requests_total[1m]))",
+          "legendFormat": "req/s"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "API Errors (1m)",
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {
+          "expr": "sum(rate(api_requests_error[1m]))",
+          "legendFormat": "err/s"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "API Latency (ms)",
+      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"expr": "api_latency_seconds * 1000", "legendFormat": "latency"}
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "TTS First Chunk Latency (ms)",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {
+          "expr": "voice_tts_latency_first_chunk_ms{provider=~\".*\"}",
+          "legendFormat": "{{provider}}"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "TTS Total Time (ms)",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {
+          "expr": "voice_tts_total_time_ms{interrupted=~\".*\"}",
+          "legendFormat": "interrupted={{interrupted}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["assistant", "observability"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timezone": "browser",
+  "title": "Assistant Overview",
+  "version": 1
+}

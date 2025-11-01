@@ -1,0 +1,43 @@
+services:
+  assistant-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/Assistant
+    environment:
+      - PYTHONUNBUFFERED=1
+      - QT_QPA_PLATFORM=offscreen
+      - PYTHONPATH=/workspace/Assistant
+      - DISABLE_LLM_PRELOAD=1
+    tty: true
+    command: python -m uvicorn src.backend.api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  voice-ws:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    environment:
+      - PYTHONUNBUFFERED=1
+      - QT_QPA_PLATFORM=offscreen
+      - PYTHONPATH=/workspace
+      - VOICE_WS_HOST=0.0.0.0
+      - VOICE_WS_PORT=8765
+      - VOSK_MODEL_PATH=/workspace/models/voice/vosk-model-small-es-0.42
+      - DISABLE_COQUI=0
+    command: python Assistant/src/mcp_servers/voice_ws_server.py
+    ports:
+      - "8765:8765"

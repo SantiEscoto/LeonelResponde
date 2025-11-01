@@ -1,0 +1,67 @@
+{
+  "profile": {
+    "user_id": "user_santiago",
+    "name": "Santiago",
+    "career": "",
+    "semester": "",
+    "interests": [],
+    "communication_preference": "friendly",
+    "preferred_language": "es",
+    "timezone": "America/Mexico_City",
+    "created_at": "2025-10-14T02:45:49.301134",
+    "last_interaction": "2025-10-17T16:05:12.622173"
+  },
+  "long_term_memory": [],
+  "context_memories": {
+    "academic": {
+      "context_type": "academic",
+      "key_information": {},
+      "recent_topics": [],
+      "important_dates": {},
+      "preferences": {},
+      "last_updated": "2025-10-14T02:45:49.301151"
+    },
+    "social": {
+      "context_type": "social",
+      "key_information": {},
+      "recent_topics": [],
+      "important_dates": {},
+      "preferences": {},
+      "last_updated": "2025-10-14T02:45:49.301153"
+    },
+    "personal": {
+      "context_type": "personal",
+      "key_information": {},
+      "recent_topics": [],
+      "important_dates": {},
+      "preferences": {},
+      "last_updated": "2025-10-14T02:45:49.301154"
+    },
+    "university": {
+      "context_type": "university",
+      "key_information": {},
+      "recent_topics": [],
+      "important_dates": {},
+      "preferences": {},
+      "last_updated": "2025-10-14T02:45:49.301155"
+    },
+    "motivational": {
+      "context_type": "motivational",
+      "key_information": {},
+      "recent_topics": [],
+      "important_dates": {},
+      "preferences": {},
+      "last_updated": "2025-10-14T02:45:49.301156"
+    },
+    "general": {
+      "context_type": "general",
+      "key_information": {},
+      "recent_topics": [],
+      "important_dates": {},
+      "preferences": {},
+      "last_updated": "2025-10-14T02:45:49.301157"
+    }
+  },
+  "learnings": {},
+  "last_save": "2025-10-17T16:05:12.622178"
+}

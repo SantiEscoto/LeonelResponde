@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "Docker": {
+      "command": "uvx",
+      "args": [
+        "docker-mcp"
+      ],
+      "env": {}
+    }
+  }
+}

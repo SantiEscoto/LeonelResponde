@@ -1,0 +1,38 @@
+services:
+  assistant-dev:
+    # Habilita GPU en Jetson
+    gpus: all
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_MAIN: Assistant/requirements-jetson.txt
+        REQUIREMENTS_VOICE: Assistant/requirements-voice-docker.txt
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+      # Compilación de llama-cpp con CUDA dentro del contenedor
+      - CMAKE_ARGS=-DGGML_CUDA=on -DGGML_CUDA_F16=on
+      - FORCE_CMAKE=1
+      # Evita precargar el LLM y reduce consumo inicial
+      - DISABLE_LLM_PRELOAD=1
+      # Desactiva Coqui TTS por defecto en Jetson
+      - DISABLE_COQUI=1
+    # Mejor rendimiento y compatibilidad con CUDA
+    ipc: host
+    ulimits:
+      memlock: -1
+    # Dispositivos opcionales (cámara/audio) si los usarás
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/snd:/dev/snd
+    # Arranque directo del API con autodetección
+    command: python Assistant/main.py --api --auto
+
+  voice-ws:
+    # Habilita GPU si usas TTS con aceleración
+    gpus: all
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+      - DISABLE_COQUI=1

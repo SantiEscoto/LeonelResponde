@@ -10,7 +10,11 @@ from typing import Any, Dict, Optional
 
 @dataclass
 class ErrorContext:
-    """Context information for error handling"""
+    """Context information for error handling.
+
+    Accepts optional `severity` and `category` for backward compatibility
+    with legacy call sites that may pass these to the constructor.
+    """
 
     component: str
     operation: str
@@ -18,3 +22,6 @@ class ErrorContext:
     session_id: Optional[str] = None
     request_id: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # Backward-compat fields to avoid TypeError if passed inadvertently
+    severity: Optional[Any] = None
+    category: Optional[Any] = None

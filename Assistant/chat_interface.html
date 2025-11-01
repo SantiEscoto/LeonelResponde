@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leonel Responde - Chat</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: #121212;
+      --muted: #9aa0a6;
+      --text: #e8eaed;
+      --accent: #4f46e5;
+      --accent-2: #22c55e;
+      --user: #1f2937;
+      --assistant: #0b3d3f;
+      --system: #3b0764;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; height: 100vh; display: flex; flex-direction: column;
+      background: radial-gradient(65% 65% at 10% 10%, rgba(79,70,229,0.15), transparent 60%),
+                  radial-gradient(60% 60% at 90% 20%, rgba(34,197,94,0.12), transparent 60%),
+                  var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+    }
+    header {
+      display: flex; align-items: center; gap: 10px; padding: 14px 18px; backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.35); border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    header .title { font-weight: 700; letter-spacing: 0.3px; }
+    header .status { margin-left: auto; font-size: 12px; color: var(--muted); }
+    header .controls { display: flex; gap: 8px; }
+    .pill { padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08); font-size: 12px; cursor: pointer; }
+    .pill.active { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.45); }
+    main { flex: 1; display: flex; flex-direction: column; padding: 16px; min-height: 0; }
+    #messages {
+      flex: 1; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; display: flex; flex-direction: column; gap: 10px; min-height: 0;
+      padding: 8px; border-radius: 12px; background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE 10+ / Edge legacy */
+      scroll-behavior: smooth;
+    }
+    /* WebKit (Chrome, Safari) */
+    #messages::-webkit-scrollbar { width: 0; height: 0; }
+    /* Ocultar aro de enfoque naranja al recibir foco */
+    #messages:focus { outline: none; }
+    #messages:focus-visible { outline: none; }
+    #topSpacer { margin-top: auto; }
+    .msg { max-width: 84%; padding: 10px 12px; border-radius: 12px; line-height: 1.45; font-size: 14px; white-space: pre-wrap; transition: transform 220ms ease-out, opacity 220ms ease-out; will-change: transform, opacity; }
+     .msg.enter { opacity: 0; transform: translateY(8px); }
+     #messages.animate-lift .msg:not(.enter) { transform: translateY(-6px); }
+     .user { align-self: flex-end; background: linear-gradient(180deg, rgba(31,41,55,0.95), rgba(31,41,55,0.85)); border: 1px solid rgba(255,255,255,0.07); }
+    .assistant { align-self: flex-start; background: linear-gradient(180deg, rgba(11,61,63,0.9), rgba(11,61,63,0.75)); border: 1px solid rgba(34,197,94,0.25); position: relative; }
+    .system { align-self: center; background: linear-gradient(180deg, rgba(59,7,100,0.8), rgba(59,7,100,0.6)); border: 1px solid rgba(79,70,229,0.25); font-size: 12px; opacity: 0.9; }
+    .typing { align-self: flex-start; color: var(--muted); font-style: italic; }
+    .row {
+      display: grid; grid-template-columns: 1fr auto auto; gap: 10px; padding: 12px 0 4px;
+    }
+    #input {
+      width: 100%; padding: 12px 14px; border-radius: 12px; outline: none; color: var(--text);
+      background: var(--panel); border: 1px solid rgba(255,255,255,0.08);
+    }
+    #send {
+      padding: 0 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(79,70,229,0.9), rgba(79,70,229,0.75)); color: #fff; cursor: pointer;
+    }
+    #send:disabled { opacity: 0.6; cursor: not-allowed; }
+    /* Estado de pensamiento: mantiene el ancho, muestra tres puntos */
+    #send.thinking { position: relative; color: transparent; }
+    #send.thinking::after {
+      content: '...';
+      position: absolute; left: 50%; transform: translateX(-50%);
+      color: #fff;
+      animation: dotsBlink 1s ease-in-out infinite;
+    }
+    @keyframes dotsBlink { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+    /* Micrófono redondo exacto */
+    #micBtn { width: 36px; height: 36px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 16px; }
+    /* TTS redondo exacto */
+    #ttsBtn { width: 36px; height: 36px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 16px; }
+    /* Botón circular de reescucha en burbuja del asistente */
+    .replay-btn { position: absolute; right: -8px; top: -8px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; background: rgba(255,255,255,0.9); color: #111; border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.25); cursor: pointer; opacity: 0; transform: scale(0.9); transition: opacity 120ms ease, transform 120ms ease; pointer-events: none; }
+    .msg.assistant:hover .replay-btn { opacity: 1; transform: scale(1); pointer-events: auto; }
+    .msg.assistant.playing .replay-btn { background: rgba(34,197,94,0.85); color: #fff; opacity: 1; transform: scale(1); pointer-events: auto; }
+  </style>
+  <script>
+    (function(){
+      try {
+        if (typeof qt !== 'undefined' && qt.webChannelTransport) {
+          var s = document.createElement('script');
+          s.src = 'qrc:///qtwebchannel/qwebchannel.js';
+          s.onload = function(){ console.log('✅ QWebChannel cargado'); };
+          s.onerror = function(){ console.warn('❌ No se pudo cargar QWebChannel'); };
+          document.head.appendChild(s);
+        } else {
+          console.log('ℹ️ QWebChannel no disponible (preview navegador sin Qt), se usa fallback.');
+        }
+      } catch(e) { console.warn('QWebChannel loader error', e); }
+    })();
+  </script>
+  <!-- Eliminado src directo qrc:/// para evitar net::ERR_UNKNOWN_URL_SCHEME en navegadores -->
+</head>
+<body>
+  <header>
+    <div class="title">🦁 Leonel Responde</div>
+    <div class="controls">
+      <button id="ttsBtn" class="pill" title="TTS">🔊</button>
+      <button id="uploadBtn" class="pill" title="Cargar documento">📎</button>
+      <input id="fileInput" type="file" accept=".txt,.md,.json,.csv" style="display:none" />
+      <button id="persistToggle" class="pill active" title="Persistir en base de conocimiento">📚 Persistir</button>
+    </div>
+    <div class="status" id="status">Cargando…</div>
+  </header>
+  <main>
+    <div id="messages" tabindex="0" role="log" aria-label="Conversación"><div id="topSpacer" aria-hidden="true"></div></div>
+    <div class="row">
+      <input id="input" type="text" placeholder="Escribe tu mensaje y presiona Enter…" />
+      <button id="micBtn" class="pill" title="Micrófono" aria-label="Micrófono">🎤</button>
+      <button id="send">Enviar</button>
+    </div>
+  </main>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const messages = $('#messages');
+    const input = $('#input');
+    const sendBtn = $('#send');
+    const statusEl = $('#status');
+    const micBtn = $('#micBtn');
+    const ttsBtn = $('#ttsBtn');
+    // Auto-scroll condicional: solo si el usuario está cerca del fondo
+    let autoScroll = true;
+    messages.addEventListener('scroll', () => {
+      const threshold = 40; // px
+      const nearBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < threshold;
+      autoScroll = nearBottom;
+    });
+    // Enfocar el contenedor para que las flechas funcionen cuando el usuario haga clic
+    messages.addEventListener('click', () => { messages.focus(); });
+    // Enfocar también al entrar el puntero (mouse/trackpad) para no requerir clic
+    messages.addEventListener('pointerenter', () => { messages.focus(); });
+
+    function scrollToBottomSmooth(lastEl) {
+      try {
+        if (lastEl && typeof lastEl.scrollIntoView === 'function') {
+          lastEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          return;
+        }
+        messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
+      } catch (e) {
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+
+    function addBubble(text, cls) {
+      const div = document.createElement('div');
+      div.className = `msg ${cls} enter`;
+      div.textContent = text;
+      // Agregar botón de reescucha en burbujas del asistente
+      if (cls === 'assistant') {
+        const btn = document.createElement('button');
+        btn.className = 'replay-btn';
+        btn.type = 'button';
+        btn.title = 'Reproducir respuesta';
+        btn.textContent = '🔁';
+        btn.addEventListener('click', (e) => { e.stopPropagation(); playTTS(text, div); });
+        div.appendChild(btn);
+      }
+      messages.classList.add('animate-lift');
+      messages.appendChild(div);
+      // Forzar reflow para asegurar estado inicial '.enter' antes de quitarlo
+      void div.offsetWidth;
+      div.classList.remove('enter');
+      setTimeout(() => { messages.classList.remove('animate-lift'); }, 240);
+      if (autoScroll) scrollToBottomSmooth(div);
+      return div;
+    }
+
+    window.chatInterface = {
+      addUserMessage(text) { return addBubble(text, 'user'); },
+      addAssistantMessage(text) {
+        const typingEl = document.getElementById('typing-ind');
+
+        let bubble; // Usaremos esta variable para el TTS y el scroll
+
+        if (typingEl) {
+          // Transformar el indicador en burbuja de asistente
+          bubble = typingEl; // Reutilizamos el elemento
+          bubble.textContent = text; // Cambiamos el texto
+          bubble.classList.remove('typing', 'enter'); // Quitamos clases viejas
+          bubble.classList.add('assistant'); // Añadimos la clase de asistente
+          bubble.id = ''; // Limpiamos el ID para que no lo vuelva a encontrar
+
+          // Agregar botón de reescucha
+          const btn = document.createElement('button');
+          btn.className = 'replay-btn';
+          btn.type = 'button';
+          btn.title = 'Reproducir respuesta';
+          btn.textContent = '🔁';
+          btn.addEventListener('click', (e) => { e.stopPropagation(); playTTS(text, bubble); });
+          bubble.appendChild(btn);
+
+          // No agregamos elemento nuevo; asegurar scroll suave y limpiar lift
+          messages.classList.remove('animate-lift');
+          if (autoScroll) scrollToBottomSmooth(bubble);
+        } else {
+          // No había "Escribiendo...", crear burbuja desde cero
+          bubble = addBubble(text, 'assistant');
+        }
+
+        // Lógica de TTS (funciona para ambos casos)
+        if (!window.pyBridge && ttsOn) { playTTS(text, bubble); }
+        return bubble;
+      },
+      addSystemMessage(text) { return addBubble(text, 'system'); },
+      showTypingIndicator() {
+        if (!document.getElementById('typing-ind')) {
+          const el = document.createElement('div');
+          el.className = 'msg typing enter';
+          el.id = 'typing-ind';
+          el.textContent = 'Escribiendo…';
+          messages.classList.add('animate-lift');
+          messages.appendChild(el);
+          // Forzar reflow para asegurar estado inicial '.enter' antes de quitarlo
+          void el.offsetWidth;
+          el.classList.remove('enter');
+          setTimeout(() => { messages.classList.remove('animate-lift'); }, 240);
+          if (autoScroll) scrollToBottomSmooth(el);
+        }
+      },
+      hideTypingIndicator() {
+        const el = document.getElementById('typing-ind');
+        if (el) el.remove();
+      }
+    };
+
+    function sendCurrent() {
+      const text = input.value.trim();
+      if (!text) return;
+      window.chatInterface.addUserMessage(text);
+      window.chatInterface.showTypingIndicator();
+      statusEl.textContent = '🧠 Consultando…';
+      input.value = '';
+      try {
+        if (window.pyBridge && typeof window.pyBridge.sendMessage === 'function') {
+          window.pyBridge.sendMessage(text);
+        } else {
+          // Fallback HTTP al backend mock
+          const reqBody = { query: text };
+          if (ephemeralDocContent && !persistToKB) {
+            reqBody.context = ephemeralDocContent;
+          }
+          fetch(`${BACKEND_HTTP}/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reqBody)
+          }).then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          }).then((data) => {
+            statusEl.textContent = '';
+            const reply = (data && data.response) ? data.response : '(sin respuesta)';
+            // addAssistantMessage ahora se encarga de reemplazar el indicador si existe
+            window.chatInterface.addAssistantMessage(reply);
+          }).catch((err) => {
+            window.chatInterface.hideTypingIndicator();
+            statusEl.textContent = '⚠️ Error backend';
+            window.chatInterface.addSystemMessage(`❌ Error consultando backend: ${err.message}`);
+            console.error('Error backend:', err);
+          });
+        }
+      } catch (e) {
+        console.error('Error al enviar al puente:', e);
+        window.chatInterface.hideTypingIndicator();
+        statusEl.textContent = '⚠️ Error puente';
+        window.chatInterface.addSystemMessage('❌ Error puente hacia Python');
+      }
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        // Si está escuchando, Enter detiene la escucha en lugar de enviar
+        if (sttActive) { stopSTT(); return; }
+        // Si estamos esperando el 'final', no enviar aún
+        if (awaitingFinal) { return; }
+        unlockTTS();
+        sendCurrent();
+      }
+    });
+    // Click en Enviar: si está escuchando, actúa como "terminar"; si no, envía
+    sendBtn.addEventListener('click', () => {
+      if (sttActive) { stopSTT(); return; }
+      if (awaitingFinal) { return; }
+      unlockTTS();
+      sendCurrent();
+    });
+
+    // ====== Documento y persistencia ======
+    let persistToKB = true;
+    let ephemeralDocContent = '';
+
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const persistToggle = document.getElementById('persistToggle');
+
+    function setPersistToggle(on) {
+      persistToKB = !!on;
+      persistToggle.classList.toggle('active', persistToKB);
+      persistToggle.textContent = persistToKB ? '📚 Persistir' : '🧠 Temporal';
+    }
+
+    persistToggle.addEventListener('click', () => setPersistToggle(!persistToKB));
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const content = String(e.target.result || '');
+        const title = f.name || 'Documento';
+        if (persistToKB) {
+          try {
+            const res = await fetch(`${BACKEND_HTTP}/add-document`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content, title })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            window.chatInterface.addSystemMessage(`✅ Documento '${title}' añadido a la base de conocimiento`);
+          } catch (err) {
+            window.chatInterface.addSystemMessage(`❌ Error al añadir documento: ${err.message}`);
+            console.error('add-document error:', err);
+          }
+        } else {
+          ephemeralDocContent = content;
+          window.chatInterface.addSystemMessage(`🧠 Documento '${title}' cargado en contexto temporal`);
+        }
+        fileInput.value = '';
+      };
+      reader.onerror = () => {
+        window.chatInterface.addSystemMessage('❌ Error leyendo el archivo seleccionado');
+        fileInput.value = '';
+      };
+      reader.readAsText(f);
+    });
+
+    // ====== STT WebSocket + WebAudio ======
+    const VOICE_WS = window.voiceServerUrl || 'ws://127.0.0.1:8010';
+    const BACKEND_HTTP = window.backendHttp || 'http://127.0.0.1:8000';
+    let sttWs = null;
+    let audioCtx = null;
+    let processor = null;
+    let mediaStream = null;
+    let sttActive = false;
+    const sendMode = window.voiceSendMode || 'json'; // 'json' o 'binary'
+    const silenceMs = typeof window.voiceSilenceMs === 'number' ? window.voiceSilenceMs : 1200;
+    const silenceRms = typeof window.voiceSilenceRms === 'number' ? window.voiceSilenceRms : 0.012;
+    const autoStopOnSilence = window.voiceAutoStopOnSilence !== false;
+    let lastVoiceTs = 0;
+    let voiceDetected = false;
+    let awaitingFinal = false;
+
+    function floatTo16BitPCM(float32Array) {
+      const out = new Int16Array(float32Array.length);
+      for (let i = 0; i < float32Array.length; i++) {
+        let s = Math.max(-1, Math.min(1, float32Array[i]));
+        out[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      return out;
+    }
+
+    function resampleTo16k(buffer, sampleRate) {
+      const targetRate = 16000;
+      if (sampleRate === targetRate) {
+        return floatTo16BitPCM(buffer);
+      }
+      const ratio = sampleRate / targetRate;
+      const newLength = Math.round(buffer.length / ratio);
+      const out = new Float32Array(newLength);
+      let pos = 0;
+      for (let i = 0; i < newLength; i++) {
+        const idx = Math.floor(pos);
+        out[i] = buffer[idx] || 0;
+        pos += ratio;
+      }
+      return floatTo16BitPCM(out);
+    }
+
+    function arrayBufferToBase64(buffer) {
+      const byteArray = new Uint8Array(buffer);
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < byteArray.length; i += chunkSize) {
+        const chunk = byteArray.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+      return btoa(binary);
+    }
+
+    function handleSTTMessage(obj) {
+      if (!obj) return;
+      if (obj.type === 'partial' && obj.text) {
+        // Mostrar solo estado genérico y rellenar el input con el parcial
+        input.value = obj.text;
+      }
+      if (obj.type === 'final' && obj.text) {
+        window.chatInterface.hideTypingIndicator();
+        // Escribir resultado final en el input, sin enviar ni crear burbuja
+        input.value = obj.text;
+      }
+      if (obj.type === 'error') {
+        window.chatInterface.addSystemMessage(`❌ STT error: ${obj.message || 'desconocido'}`);
+      }
+    }
+
+    async function startSTT() {
+      if (sttActive) return;
+      sttActive = true;
+      micBtn.classList.add('active');
+      micBtn.textContent = '🎤';
+      // Botón Enviar: mostrar puntos pensando, sin cambiar tamaño
+      sendBtn.classList.add('thinking');
+      lastVoiceTs = Date.now();
+      voiceDetected = false;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(mediaStream);
+        processor = audioCtx.createScriptProcessor(4096, 1, 1);
+        processor.onaudioprocess = (e) => {
+          if (!sttWs || sttWs.readyState !== WebSocket.OPEN) return;
+          const inputBuffer = e.inputBuffer.getChannelData(0);
+
+          // RMS para detección de silencio
+          let sumSq = 0;
+          for (let i = 0; i < inputBuffer.length; i++) {
+            const s = inputBuffer[i];
+            sumSq += s * s;
+          }
+          const rms = Math.sqrt(sumSq / inputBuffer.length);
+          const now = Date.now();
+          if (rms >= silenceRms) {
+            voiceDetected = true;
+            lastVoiceTs = now;
+          }
+
+          const pcm16 = resampleTo16k(inputBuffer, audioCtx.sampleRate);
+          const arrayBuffer = pcm16.buffer;
+
+          try {
+            if (sendMode === 'json') {
+              const b64 = arrayBufferToBase64(arrayBuffer);
+              sttWs.send(JSON.stringify({ type: 'audio_chunk', data_base64: b64 }));
+            } else {
+              sttWs.send(arrayBuffer);
+            }
+          } catch (err) {
+            console.error('WS send error', err);
+          }
+
+          if (autoStopOnSilence) {
+            const silenceFor = now - lastVoiceTs;
+            if (voiceDetected && silenceFor >= silenceMs) {
+              stopSTT();
+            }
+          }
+        };
+
+        source.connect(processor);
+        processor.connect(audioCtx.destination);
+
+        sttWs = new WebSocket(`${VOICE_WS}/ws/stt`);
+        sttWs.onopen = () => {
+          const config = { type: 'stt_start', sample_rate: 16000, vad_level: 2, frame_ms: 30 };
+          sttWs.send(JSON.stringify(config));
+        };
+        sttWs.onmessage = (evt) => {
+          try {
+            const obj = JSON.parse(evt.data);
+            handleSTTMessage(obj);
+            if (obj && obj.type === 'final') {
+              // Cerrar WS y limpiar audio tras recibir el resultado final
+              awaitingFinal = false;
+              statusEl.textContent = '';
+              // Restaurar botón Enviar
+              sendBtn.textContent = 'Enviar';
+              sendBtn.classList.remove('thinking');
+              try { sttWs && sttWs.close(); } catch {}
+              sttWs = null;
+              try { processor && processor.disconnect(); } catch {}
+              try { audioCtx && audioCtx.close(); } catch {}
+              try { mediaStream && mediaStream.getTracks().forEach(t => t.stop()); } catch {}
+              processor = null; audioCtx = null; mediaStream = null;
+            }
+          } catch (e) {
+            console.warn('Non-JSON msg', evt.data);
+          }
+        };
+        sttWs.onerror = (e) => { window.chatInterface.addSystemMessage('❌ Error de STT WebSocket'); console.error(e); sendBtn.classList.remove('thinking'); };
+        sttWs.onclose = () => { sendBtn.textContent = 'Enviar'; sendBtn.classList.remove('thinking'); };
+      } catch (err) {
+        sttActive = false;
+        micBtn.classList.remove('active');
+        micBtn.textContent = '🎤 Mic OFF';
+        window.chatInterface.addSystemMessage('❌ No se pudo acceder al micrófono');
+        sendBtn.textContent = 'Enviar';
+        sendBtn.classList.remove('thinking');
+        console.error(err);
+      }
+    }
+
+    function stopSTT() {
+      if (!sttActive) return;
+      sttActive = false;
+      micBtn.classList.remove('active');
+      micBtn.textContent = '🎤';
+      // Mientras procesamos el 'final', el botón Enviar muestra puntos pensando
+      sendBtn.classList.add('thinking');
+      voiceDetected = false;
+      lastVoiceTs = 0;
+      // Enviar fin pero NO cerrar el socket: esperamos el 'final'
+      try { if (sttWs && sttWs.readyState === WebSocket.OPEN) { sttWs.send(JSON.stringify({ type: 'stt_end' })); awaitingFinal = true; } } catch {}
+      // Detener procesamiento/audio inmediatamente
+      try { processor && processor.disconnect(); } catch {}
+      try { audioCtx && audioCtx.close(); } catch {}
+      try { mediaStream && mediaStream.getTracks().forEach(t => t.stop()); } catch {}
+      processor = null; audioCtx = null; mediaStream = null;
+    }
+
+    // ====== TTS Reproducción (WS) ======
+    function base64ToUint8Array(b64) {
+      const binary = atob(b64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) { bytes[i] = binary.charCodeAt(i); }
+      return bytes;
+    }
+
+    const ttsAudioEl = new Audio();
+let autoplayUnlocked = false;
+
+function createSilentWav(durationMs = 80, sampleRate = 22050) {
+  const samples = Math.max(1, Math.floor(sampleRate * durationMs / 1000));
+  const dataSize = samples * 2;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  let off = 0;
+  writeStr(off, 'RIFF'); off += 4;
+  view.setUint32(off, 36 + dataSize, true); off += 4;
+  writeStr(off, 'WAVE'); off += 4;
+  writeStr(off, 'fmt '); off += 4;
+  view.setUint32(off, 16, true); off += 4;
+  view.setUint16(off, 1, true); off += 2;
+  view.setUint16(off, 1, true); off += 2;
+  view.setUint32(off, sampleRate, true); off += 4;
+  view.setUint32(off, sampleRate * 2, true); off += 4;
+  view.setUint16(off, 2, true); off += 2;
+  view.setUint16(off, 16, true); off += 2;
+  writeStr(off, 'data'); off += 4;
+  view.setUint32(off, dataSize, true); off += 4;
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+function unlockTTS() {
+  if (autoplayUnlocked) return;
+  try {
+    const blob = createSilentWav();
+    const url = URL.createObjectURL(blob);
+    ttsAudioEl.src = url;
+    const p = ttsAudioEl.play();
+    if (p && typeof p.then === 'function') {
+      p.then(() => { autoplayUnlocked = true; try { URL.revokeObjectURL(url); } catch {} })
+       .catch(() => { try { URL.revokeObjectURL(url); } catch {} });
+    } else {
+      autoplayUnlocked = true;
+      try { URL.revokeObjectURL(url); } catch {}
+    }
+  } catch (e) {}
+}
+    let ttsWs = null;
+    let ttsChunks = [];
+    let autoplayWarned = false;
+    function playTTS(text, bubble) {
+      try { if (ttsWs && ttsWs.readyState !== WebSocket.CLOSED) ttsWs.close(); } catch {}
+      ttsChunks = [];
+      // Asegurar que no quedan estados 'playing' residuales en otras burbujas
+      document.querySelectorAll('.msg.assistant.playing').forEach(el => el.classList.remove('playing'));
+      const btn = bubble?.querySelector('.replay-btn');
+      if (btn) btn.textContent = '...';
+      bubble?.classList.add('playing');
+      let ws;
+      try { ws = new WebSocket(`${VOICE_WS}/ws/tts`); } catch (err) {
+        bubble?.classList.remove('playing');
+        if (btn) btn.textContent = '🔁';
+        window.chatInterface.addSystemMessage('❌ No se pudo abrir TTS WebSocket');
+        console.error(err);
+        return;
+      }
+      ttsWs = ws;
+      ws.onopen = () => {
+        const provider = (window.ttsProvider || 'pyttsx3');
+        ws.send(JSON.stringify({ type: 'tts_request', text, provider }));
+      };
+      ws.onmessage = (evt) => {
+        try {
+          const obj = JSON.parse(evt.data);
+          if (obj.type === 'audio_chunk' && obj.data_base64) {
+            ttsChunks.push(base64ToUint8Array(obj.data_base64));
+          } else if (obj.type === 'tts_end') {
+            const fmt = (obj.format || 'wav').toLowerCase();
+            const blob = new Blob(ttsChunks, { type: fmt === 'wav' ? 'audio/wav' : 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            ttsAudioEl.src = url;
+            const p = ttsAudioEl.play();
+            if (p && typeof p.then === 'function') {
+              p.catch((err) => {
+                if (!autoplayWarned) {
+                  window.chatInterface.addSystemMessage('🔇 Tu navegador bloqueó la reproducción automática. Usa el botón 🔁 para escuchar.');
+                  autoplayWarned = true;
+                }
+                // Si el navegador bloquea autoplay, revertir estado visual inmediatamente
+                bubble?.classList.remove('playing');
+                const btn2 = bubble?.querySelector('.replay-btn');
+                if (btn2) btn2.textContent = '🔁';
+                console.warn('Autoplay bloqueado', err);
+              });
+            }
+            // Remover color al terminar, pausar o si hay error de audio
+            ttsAudioEl.onended = () => {
+              bubble?.classList.remove('playing');
+              const btn = bubble?.querySelector('.replay-btn');
+              if (btn) { btn.textContent = '🔁'; bubble.dataset.played = 'true'; }
+              try { URL.revokeObjectURL(url); } catch {}
+            };
+            ttsAudioEl.onpause = () => {
+              bubble?.classList.remove('playing');
+              if (btn) btn.textContent = '🔁';
+            };
+            ttsAudioEl.onerror = () => {
+              bubble?.classList.remove('playing');
+              if (btn) btn.textContent = '🔁';
+              try { URL.revokeObjectURL(url); } catch {}
+            };
+            try { ws.close(); } catch {}
+          }
+        } catch (e) {
+          console.warn('Mensaje no JSON en TTS', evt.data);
+        }
+      };
+      ws.onerror = (e) => {
+        bubble?.classList.remove('playing');
+        if (btn) btn.textContent = '🔁';
+        window.chatInterface.addSystemMessage('❌ Error de TTS WebSocket');
+        console.error(e);
+      };
+      ws.onclose = () => {
+        bubble?.classList.remove('playing');
+        if (btn) btn.textContent = '🔁';
+      };
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (!sttActive) { startSTT(); if (window.pyBridge?.toggleMic) window.pyBridge.toggleMic(true); }
+      else { stopSTT(); if (window.pyBridge?.toggleMic) window.pyBridge.toggleMic(false); }
+    });
+
+    // TTS toggle (solo refleja estado en Python)
+    let ttsOn = true;
+    function setTTS(on) {
+      ttsOn = !!on;
+      ttsBtn.classList.toggle('active', ttsOn);
+      ttsBtn.textContent = ttsOn ? '🔊' : '🔇';
+      if (window.pyBridge && typeof window.pyBridge.toggleTTS === 'function') {
+        window.pyBridge.toggleTTS(ttsOn);
+      }
+    }
+    ttsBtn.addEventListener('click', () => { unlockTTS(); setTTS(!ttsOn); });
+    // Inicializar estado por defecto
+    setTTS(ttsOn);
+    // Desbloquear autoplay en el primer gesto del usuario
+    window.addEventListener('pointerdown', () => unlockTTS(), { once: true });
+
+    // Estado inicial
+    statusEl.textContent = 'Cargando…';
+
+    // Si el inyectado ya montó el QWebChannel, reflejar estado; si no, listo para HTTP
+    setTimeout(() => {
+      if (window.qtwebchannel || window.pyBridge) {
+        statusEl.textContent = 'Conectado';
+      } else {
+        statusEl.textContent = '';
+      }
+    }, 400);
+  </script>
+</body>
+</html>
