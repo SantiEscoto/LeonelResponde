@@ -1,0 +1,27 @@
+# Dependencias para Fase 1: Backend LLM Local
+# LLM y NLP
+torch>=2.0.0
+llama-cpp-python==0.2.19
+faiss-cpu==1.7.4
+sentence-transformers==2.2.2
+transformers==4.35.2
+huggingface-hub==0.16.4
+
+# Comunicación y utils
+fastapi>=0.104.0
+uvicorn>=0.24.0
+colorama>=0.4.6
+numpy<2,>=1.24.0
+pydantic>=2.4.0
+
+# Monitoreo de recursos
+psutil>=5.9.0
+GPUtil>=1.4.0
+
+# Memoria (LangChain)
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-core>=0.1.0
+
+# UI Moderna
+PySide6>=6.6.0

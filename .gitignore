@@ -1,0 +1,110 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+logs/*.log
+models/*.gguf
+models/knowledge/*.bin
+models/knowledge/*.json
+models/memory/*.json
+*.tmp
+*.temp
+
+# Keep directory structure
+!logs/.gitkeep
+!models/.gitkeep
+!models/knowledge/.gitkeep
+!models/memory/.gitkeep
+
+# Config files with sensitive data
+config_local.py
+.env
+.env.local
+
+# Tool caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Frontend build info
+*.tsbuildinfo
+
+# Node modules
+node_modules/
+
+# Generated audio artifacts
+/out_tts*.wav
+
+# Voice model archives
+models/voice/*.zip
+
+# Assistant logs
+Assistant/logs/*.jsonl
+Assistant/logs/*.log
+
+# Observability data (no esencial para clonar y correr)
+observability/prometheus-data/
+observability/**/wal/
+observability/**/chunks_head/
+observability/**/lock
+observability/**/queries.active
+
+# Assistant datos y artefactos locales
+Assistant/src/logs/
+Assistant/logs/
+Assistant/data/
+Assistant/documents/pdfs/
+Assistant/documents/processed/
+Assistant/documents/texts/
+
+# Modelos y assets grandes (se descargan por separado)
+models/voice/
+!models/voice/.gitkeep
+
+# Frontend env locales
+frontend/.env*
+
+# Jetson helper (carpeta auxiliar no esencial)
+orin_nano_assistant/

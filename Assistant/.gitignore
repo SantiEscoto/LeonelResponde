@@ -1,0 +1,47 @@
+# Entorno virtual
+venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+
+# Logs y archivos temporales
+logs/*.log
+*.log
+*.tmp
+
+# Logs y trazas en código
+src/logs/
+
+# Archivos de configuración local
+.env
+
+# Modelos grandes (deben descargarse por separado)
+./models/*.gguf
+./models/*.bin
+
+# Datos locales, muestras y cachés
+data/
+documents/pdfs/
+documents/processed/
+documents/texts/
+
+# Archivos de base de conocimiento
+*.faiss
+*.pkl
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
