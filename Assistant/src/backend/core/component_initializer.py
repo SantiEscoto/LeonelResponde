@@ -249,9 +249,15 @@ def initialize_components(dry_init: bool = False) -> Dict[str, Any]:
                 kb.initialize_index()
             return kb
 
-        initialize_component(
-            "Knowledge Base", "knowledge_base_init", init_knowledge_base, components, "kb"
-        )
+        # Permitir desactivar Knowledge Base en entornos mínimos (Jetson/RPi)
+        disable_kb_env = str(os.environ.get("DISABLE_KNOWLEDGE_BASE", "")).lower()
+        if disable_kb_env in {"1", "true", "yes", "y"}:
+            logger.info("⏭️ Knowledge Base desactivada por entorno (DISABLE_KNOWLEDGE_BASE)")
+            components["kb"] = None
+        else:
+            initialize_component(
+                "Knowledge Base", "knowledge_base_init", init_knowledge_base, components, "kb"
+            )
 
         # Inicializar Resource Monitor
         def init_resource_monitor():

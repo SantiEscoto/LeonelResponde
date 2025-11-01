@@ -459,6 +459,16 @@ class UnifiedConfig:
         if env_flag is not None:
             self.memory.langchain.enable = str(env_flag).lower() in {"1", "true", "yes"}
 
+        # Optional: Allow overriding LLM model name via environment variable
+        # Useful for minimal Jetson/RPi setups with smaller GGUF models
+        env_llm_model = os.environ.get("LLM_MODEL_NAME")
+        if env_llm_model:
+            try:
+                self.llm.model_name = str(env_llm_model)
+                logger.info(f"🔧 LLM model override via env: {self.llm.model_name}")
+            except Exception as e:
+                logger.warning(f"Failed to apply LLM_MODEL_NAME env override: {e}")
+
         # Load MCP configuration
         self.mcp = self._load_mcp_config()
 

@@ -88,6 +88,12 @@ def init_llm_manager() -> Optional[Any]:
 def init_knowledge_base() -> Optional[Any]:
     """Initialize knowledge base"""
     try:
+        # Allow disabling Knowledge Base via environment for minimal setups
+        disable_kb_env = str(os.environ.get("DISABLE_KNOWLEDGE_BASE", "")).lower()
+        if disable_kb_env in {"1", "true", "yes", "y"}:
+            logger.info("⏭️ Knowledge Base disabled by environment (DISABLE_KNOWLEDGE_BASE)")
+            return None
+
         from src.backend.llm.knowledge_base import KnowledgeBase
         from src.backend.utils.unified_config import get_config
         

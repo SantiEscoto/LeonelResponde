@@ -568,10 +568,10 @@ class LLMManager:
                             ErrorContext(
                                 component="llm_manager",
                                 operation="query",
-                                severity=ErrorSeverity.HIGH,
-                                category=ErrorCategory.SYSTEM,
-                                model_path=self.model_path,
+                                metadata={"model_path": self.model_path},
                             ),
+                            severity=ErrorSeverity.HIGH,
+                            category=ErrorCategory.SYSTEM,
                         )
                     return "Error: No pude cargar el modelo LLM"
 
