@@ -1,0 +1,36 @@
+MANUAL DE USUARIO - SISTEMA DE ASISTENTE IA
+
+1. FUNCIONES PRINCIPALES:
+   - El asistente puede responder preguntas sobre programación
+   - Puede ayudar con tareas de desarrollo de software
+   - Tiene acceso a memoria conversacional
+   - Soporta reconocimiento de voz (TTS)
+
+2. COMANDOS DISPONIBLES:
+   - /help: Muestra todos los comandos disponibles
+   - /status: Muestra el estado del sistema
+   - /clear: Limpia la memoria conversacional
+   - /memory: Muestra información de memoria
+
+3. CONFIGURACIÓN:
+   - El sistema usa modelos locales para privacidad
+   - Los datos se almacenan en la carpeta data/
+   - La memoria se respalda automáticamente
+
+4. TROUBLESHOOTING:
+   - Si el TTS no funciona, verificar que pyttsx3 esté instalado
+   - Si hay errores de memoria, reiniciar la aplicación
+   - Para problemas de rendimiento, usar /resources
+
+5. CARACTERÍSTICAS TÉCNICAS:
+   - Modelo: Mistral 7B
+   - Memoria: Sistema híbrido (corto y largo plazo)
+   - Base de conocimiento: FAISS con embeddings
+   - Interfaz: PySide6 con burbujas de chat modernas
+
+
+
+
+
+
+

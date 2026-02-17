@@ -215,87 +215,6 @@ def _configure_environment():
 
 
 # =============================================================================
-# AUTODETECCIÓN DE HARDWARE
-# =============================================================================
-
-def _autodetect_and_tune_config(config, logger):
-    """Autodetecta hardware y ajusta configuración LLM/Sistema.
-
-    Reglas principales:
-    - Si hay MPS (macOS): habilitar GPU, permitir MPS y usar todas las capas.
-    - Si hay CUDA/NVIDIA: habilitar GPU y usar todas las capas en GPU.
-    - Si no hay GPU: deshabilitar GPU, usar CPU, capas GPU = 0.
-    - Ajustar n_threads según CPU y reducir n_ctx en ARM si es necesario.
-    """
-    try:
-        # Importar utilidades de monitor de recursos para detección
-        from src.backend.utils.resource_monitor import get_resource_monitor
-        import platform
-
-        monitor = get_resource_monitor()
-        gpu_info = monitor.get_enhanced_gpu_info()
-        arch = platform.machine().lower()
-        system = platform.system()
-
-        logger.info("🔎 Autodetección de hardware iniciada...")
-        logger.info(f"🧩 Sistema: {system} | Arquitectura: {arch}")
-        logger.info(f"🎮 GPU info: {gpu_info}")
-
-        # Ajustes base de CPU
-        cpu_threads = os.cpu_count() or 4
-        config.llm.n_threads = min(8, cpu_threads)
-
-        # Heurística de GPU
-        if gpu_info.get("available"):
-            gpu_type = gpu_info.get("type", "none")
-            if gpu_type == "mps":
-                # Apple Silicon con MPS
-                config.system.enable_gpu = True
-                config.llm.disable_mps = False
-                config.llm.device = "mps"
-                config.llm.n_gpu_layers = -1  # usar todas las capas en GPU
-                os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-                logger.info("🍎 MPS detectado: habilitando aceleración en Mac")
-            else:
-                # CUDA/NVIDIA
-                config.system.enable_gpu = True
-                config.llm.disable_mps = True
-                config.llm.device = "cuda"
-                config.llm.n_gpu_layers = -1
-                logger.info("🚀 GPU CUDA/NVIDIA detectada: usando aceleración completa")
-        else:
-            # Sin GPU disponible
-            config.system.enable_gpu = False
-            config.llm.disable_mps = True
-            config.llm.device = "cpu"
-            config.llm.n_gpu_layers = 0
-            logger.info("🧮 Sin GPU: modo CPU optimizado")
-
-        # Heurística ligera para ARM (Jetson/aarch64)
-        is_arm = "aarch64" in arch or "arm" in arch
-        if is_arm and not config.system.enable_gpu:
-            # Reducir contexto para entornos de memoria limitada
-            config.llm.n_ctx = min(config.llm.n_ctx, 1024)
-            logger.info("🔧 ARM sin GPU: reduciendo n_ctx para optimizar memoria")
-
-        # Resumen
-        logger.info(
-            "⚙️ Configuración efectiva: "
-            f"device={config.llm.device}, n_gpu_layers={config.llm.n_gpu_layers}, "
-            f"n_threads={config.llm.n_threads}, n_ctx={config.llm.n_ctx}"
-        )
-
-        # Alinear entorno tras autodetección
-        if config.llm.device == "mps":
-            os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-        else:
-            os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"
-
-    except Exception as e:
-        logger.warning(f"⚠️ Autodetección falló, continuando con configuración por defecto: {e}")
-
-
-# =============================================================================
 # FUNCIONES PRINCIPALES
 # =============================================================================
 
@@ -896,7 +815,6 @@ Ejemplos de uso:
   python main.py --api              # Servidor API REST
   python main.py --test             # Ejecutar tests de integración
   python main.py --dry-init         # Inicialización ligera para pruebas
-  python main.py --auto             # Autodetecta hardware y ajusta configuración
         """,
     )
 
@@ -925,12 +843,6 @@ Ejemplos de uso:
         help="Iniciar servidor Voice WebSocket junto con el asistente",
     )
 
-    parser.add_argument(
-        "--auto",
-        action="store_true",
-        help="Autodetecta hardware y ajusta configuración (GPU/MPS/CPU)",
-    )
-
     args = parser.parse_args()
 
     # Banner de inicio
@@ -948,29 +860,25 @@ Ejemplos de uso:
     voice_ws_proc = None
 
     try:
-        # 1. Autodetección (si se solicita)
-        if args.auto:
-            _autodetect_and_tune_config(config, logger)
-
-        # 2. Inicialización del sistema de métricas
+        # 1. Inicialización del sistema de métricas
         logger.info("📊 Inicializando sistema de métricas...")
         metrics_collector = initialize_metrics_collector()
 
-        # 3. Inicializada del sistema optimizada
+        # 2. Inicializada del sistema optimizada
         logger.info("🚀 Inicializando sistema optimizado...")
         init_stats = initialize_optimized_system()
 
-        # 4. Inicialización del sistema de protección
+        # 3. Inicialización del sistema de protección
         logger.info("🛡️ Inicializando sistema de protección...")
         protection = initialize_system_protection()
 
-        # 5. Validación de configuración
+        # 4. Validación de configuración
         logger.info("🔍 Validando configuración del sistema...")
         if not validate_system_configuration():
             logger.error("❌ Configuración inválida, abortando inicio")
             sys.exit(1)
 
-        # 6. Ejecución de tests si se solicita
+        # 5. Ejecución de tests si se solicita
         if args.test:
             logger.info("🧪 Ejecutando tests de integración...")
             success = run_integration_tests()
@@ -982,33 +890,33 @@ Ejemplos de uso:
                 print("❌ Algunos tests fallaron")
                 sys.exit(1)
 
-        # 7. Determinar modo de ejecución (interactivo por defecto)
+        # 6. Determinar modo de ejecución (interactivo por defecto)
         if not (args.api or args.interactive):
             args.interactive = True
 
-        # 8. Inicialización de componentes del sistema
+        # 7. Inicialización de componentes del sistema
         logger.info("🧩 Inicializando componentes del sistema...")
         components = initialize_system_components(dry_init=args.dry_init)
 
-        # 8.1 Opcional: iniciar servidor de voz WebSocket
+        # 7.1 Opcional: iniciar servidor de voz WebSocket
         if args.voice_ws:
             logger.info("🔊 Iniciando servidor Voice WebSocket...")
             voice_ws_proc = start_voice_ws_server_process()
 
-        # 9. Inicialización del graceful shutdown
+        # 8. Inicialización del graceful shutdown
         logger.info("🛡️ Inicializando graceful shutdown...")
         shutdown_manager = initialize_graceful_shutdown(components, metrics_collector)
 
-        # 10. Inicialización del health checker
+        # 9. Inicialización del health checker
         logger.info("🏥 Inicializando health checker...")
         health_checker = initialize_health_checker(components)
 
-        # 11. Recolectar métricas post-inicialización
+        # 10. Recolectar métricas post-inicialización
         if metrics_collector:
             metrics_collector.collect_system_metrics()
             logger.info("📊 Métricas post-inicialización recolectadas")
 
-        # 12. Ejecución del modo solicitado
+        # 11. Ejecución del modo solicitado
         if args.api:
             logger.info("🌐 Iniciando servidor API...")
             start_api_server(components)

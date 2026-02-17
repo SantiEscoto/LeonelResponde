@@ -17,12 +17,6 @@ help:
 	@echo "  docker-voice-ws-up         Start dedicated voice-ws service (port $(WS_PORT))"
 	@echo "  docker-voice-ws-logs       Tail logs for voice-ws service"
 	@echo "  docker-voice-ws-down       Stop and remove voice-ws service"
-	@echo "  backend-up                 Start assistant-dev backend (build if needed)"
-	@echo "  backend-logs               Tail logs for assistant-dev backend"
-	@echo "  backend-down               Stop and remove assistant-dev backend"
-	@echo "  backend-restart            Restart assistant-dev backend"
-	@echo "  backend-status             GET /status from assistant-dev backend"
-	@echo "  backend-health             GET /health from assistant-dev backend"
 	@echo "  voice-status               GET /status from HTTP voice server"
 	@echo "  voice-health               GET /health from HTTP voice server"
 	@echo "  tts-demo                   Generate WAV via HTTP /tts"
@@ -31,7 +25,7 @@ help:
 	@echo "  ws-stt-demo-binary         Transcribe WAV via WS /ws/stt sending binary chunks"
 	@echo "  frontend-dev               Start frontend dev server (Vite)"
 	@echo ""
-	@echo "Variables: HOST=$(HOST) HTTP_PORT=$(HTTP_PORT) WS_PORT=$(WS_PORT) TEXT='...' OUTPUT=salida.wav INPUT=Assistant/data/voice_samples/ws_tts_16k.wav"
+	@echo "Variables: HOST=$(HOST) HTTP_PORT=$(HTTP_PORT) WS_PORT=$(WS_PORT) TEXT='...' OUTPUT=salida.wav INPUT=data/sample.wav"
 
 .PHONY: voice-env
 voice-env:
@@ -85,7 +79,7 @@ voice-health:
 
 TEXT ?= Hola, ¿cómo estás?
 OUTPUT ?= salida.wav
-INPUT ?= Assistant/data/voice_samples/ws_tts_16k.wav
+INPUT ?= data/sample.wav
 
 .PHONY: tts-demo
 tts-demo:
@@ -106,27 +100,3 @@ ws-stt-demo-binary:
 .PHONY: frontend-dev
 frontend-dev:
 	cd frontend && npm run dev
-
-.PHONY: backend-up
-backend-up:
-	docker compose up -d --build assistant-dev
-
-.PHONY: backend-logs
-backend-logs:
-	docker compose logs -f assistant-dev
-
-.PHONY: backend-down
-backend-down:
-	docker compose rm -sf assistant-dev
-
-.PHONY: backend-restart
-backend-restart:
-	docker compose restart assistant-dev
-
-.PHONY: backend-status
-backend-status:
-	curl -s http://$(HOST):$(HTTP_PORT)/status | jq .
-
-.PHONY: backend-health
-backend-health:
-	curl -s http://$(HOST):$(HTTP_PORT)/health | jq .

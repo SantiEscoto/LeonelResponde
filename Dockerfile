@@ -9,10 +9,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     QT_QPA_PLATFORM=offscreen
 
-# Permite seleccionar requirements en build (Jetson vs general)
-ARG REQUIREMENTS_MAIN=Assistant/requirements.txt
-ARG REQUIREMENTS_VOICE=Assistant/requirements-voice-docker.txt
-
 # System packages for audio, WebRTC (PyAV), and build tooling
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -37,13 +33,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /workspace
 
 # Copy requirements first for better build caching
-COPY ${REQUIREMENTS_MAIN} /tmp/requirements_main.txt
-COPY ${REQUIREMENTS_VOICE} /tmp/requirements_voice.txt
+COPY Assistant/requirements.txt /tmp/requirements.txt
+COPY Assistant/requirements-voice-docker.txt /tmp/requirements-voice.txt
 
 # Install Python deps (base + voice)
 RUN python -m pip install --upgrade pip && \
-    pip install -r /tmp/requirements_main.txt && \
-    pip install -r /tmp/requirements_voice.txt
+    pip install -r /tmp/requirements.txt && \
+    pip install -r /tmp/requirements-voice.txt
 
 # Copy the rest of the project (optional; compose will mount volumes)
 COPY . /workspace

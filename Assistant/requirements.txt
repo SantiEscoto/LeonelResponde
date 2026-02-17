@@ -2,7 +2,7 @@
 # LLM y NLP
 torch>=2.0.0
 llama-cpp-python==0.2.19
-faiss-cpu==1.7.4
+faiss-cpu==1.12.0
 sentence-transformers==2.2.2
 transformers==4.35.2
 huggingface-hub==0.16.4
@@ -11,7 +11,7 @@ huggingface-hub==0.16.4
 fastapi>=0.104.0
 uvicorn>=0.24.0
 colorama>=0.4.6
-numpy<2,>=1.24.0
+numpy>=1.24.0
 pydantic>=2.4.0
 
 # Monitoreo de recursos

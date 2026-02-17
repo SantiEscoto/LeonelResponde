@@ -9,6 +9,7 @@ webrtcvad==2.0.10
 # TTS (Text-to-Speech)
 TTS==0.22.0              # Coqui XTTS v2
 bark==0.1.5              # Backup expresivo
+pyttsx3==2.99            # Fallback básico
 
 # Audio Processing
 pyaudio==0.2.11          # Requiere portaudio19-dev en el sistema

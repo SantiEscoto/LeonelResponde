@@ -83,28 +83,3 @@ models/voice/*.zip
 # Assistant logs
 Assistant/logs/*.jsonl
 Assistant/logs/*.log
-
-# Observability data (no esencial para clonar y correr)
-observability/prometheus-data/
-observability/**/wal/
-observability/**/chunks_head/
-observability/**/lock
-observability/**/queries.active
-
-# Assistant datos y artefactos locales
-Assistant/src/logs/
-Assistant/logs/
-Assistant/data/
-Assistant/documents/pdfs/
-Assistant/documents/processed/
-Assistant/documents/texts/
-
-# Modelos y assets grandes (se descargan por separado)
-models/voice/
-!models/voice/.gitkeep
-
-# Frontend env locales
-frontend/.env*
-
-# Jetson helper (carpeta auxiliar no esencial)
-orin_nano_assistant/
