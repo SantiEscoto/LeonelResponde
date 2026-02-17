@@ -83,3 +83,25 @@ models/voice/*.zip
 # Assistant logs
 Assistant/logs/*.jsonl
 Assistant/logs/*.log
+# --- Compy / modelos pesados ---
+*.gguf
+*.bin
+
+# Python envs
+.venv/
+venv/
+
+# IDE
+.vs/
+
+# caches
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# datos locales/sensibles
+Assistant/models/memory/users/
+Assistant/leonel_interacciones.json
+Assistant/faiss_index.bin
